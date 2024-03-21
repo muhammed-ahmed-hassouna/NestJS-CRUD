@@ -30,5 +30,4 @@ export class AuthService {
             access_token: AuthService.access_token
         };
     }
-
 }

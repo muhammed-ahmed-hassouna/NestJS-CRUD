@@ -1,8 +1,11 @@
 import { Body, Controller, Post, HttpCode, HttpStatus, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { SignInDto } from 'src/users/dtos/signIn.dto';
+import { SignInDto } from 'src/users/dtos/user.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags("auth")
+@ApiBearerAuth('JWT')
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService) { }

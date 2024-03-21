@@ -1,6 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dtos/create-user.dto';
-import { UpdateUserDto } from './dtos/update-user.dto';
+import { CreateUserDto, UpdateUserDto } from './dtos/user.dto';
 import { UsersRepository } from './users.repository';
 import { Users } from './users.schema';
 import { Cache } from 'cache-manager';
@@ -46,12 +45,24 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<Users> {
-    const updatedUser = await this.usersRepository.update(id, updateUserDto);
+    try {
 
-    // Cache the updated user
-    await this.cacheManager.set(`user_${id}`, updatedUser);
+      const updatedUser = await this.usersRepository.update(id, updateUserDto);
 
-    return updatedUser;
+      // Cache the updated user
+      await this.cacheManager.set(`user_${id}`, updatedUser);
+
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof MongoError && error.code === 11000) {
+        const match = error.message.match(/\"(.+?)\"/);
+        // Extract the duplicate key from the error message
+        const duplicateKey = match ? match[1] : 'Unknown';
+        throw errors.DuplicateKeyError(duplicateKey)
+      } else {
+        throw error;
+      }
+    }
   }
 
   async remove(id: string): Promise<any> {
